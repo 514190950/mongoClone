@@ -40,25 +40,29 @@ public class Main extends Application {
     TextField oldHost = new TextField("地址");
     TextField oldPort = new TextField("端口");
     TextField limit = new TextField("要复制的数量(如果想全复制写-1)");
+    TextField newdatabase = new TextField("数据库名称，多个数据库用\",\"分割，form和to必须有相同名称的数据库名");
 
     {
         start.setOnAction((event) -> {
             String db = this.database.getText();
+            String newDb = newdatabase.getText();
             int scanCount = -1;
-            if(!StringUtils.isEmpty(limit.getText())){
+            if (!StringUtils.isEmpty(limit.getText())) {
                 scanCount = Integer.parseInt(limit.getText());
             }
             if (db.contains(",")) {
-                for (String dbString : db.split(",")) {
+                String[] dbSplit = db.split(",");
+                String[] newDbSplit = newDb.split(",");
+                for (int i = 0; i < dbSplit.length; i++) {
                     MongoTemplate oldMongo = getMongoTemplate(this.oldHost.getText(),
                             Integer.parseInt(this.oldPort.getText()),
-                            dbString, this.oldUsername.getText(), this.oldPassword.getText());
+                            dbSplit[i], this.oldUsername.getText(), this.oldPassword.getText());
 
                     MongoTemplate newMongo = getMongoTemplate(this.newHost.getText(),
-                            Integer.parseInt(this.newPort.getText()), dbString, this.newUsername.getText(),
+                            Integer.parseInt(this.newPort.getText()), StringUtils.isEmpty(newDb) ? newDbSplit[i] :
+                                    dbSplit[i], this.newUsername.getText(),
                             this.newPassword.getText());
-                    new MongoGetter(oldMongo,newMongo,scanCount).mongoClone();
-
+                    new MongoGetter(oldMongo, newMongo, scanCount).mongoClone();
                 }
             } else {
                 MongoTemplate oldMongo = getMongoTemplate(this.oldHost.getText(),
@@ -66,9 +70,9 @@ public class Main extends Application {
                         db, this.oldUsername.getText(), this.oldPassword.getText());
 
                 MongoTemplate newMongo = getMongoTemplate(this.newHost.getText(),
-                        Integer.parseInt(this.newPort.getText()), db, this.newUsername.getText(),
+                        Integer.parseInt(this.newPort.getText()), newDb, this.newUsername.getText(),
                         this.newPassword.getText());
-                new MongoGetter(oldMongo,newMongo,scanCount).mongoClone();
+                new MongoGetter(oldMongo, newMongo, scanCount).mongoClone();
             }
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.titleProperty().set("成功");
@@ -83,7 +87,9 @@ public class Main extends Application {
         VBox vBox = new VBox();
         HBox hBox1 = new HBox();
         HBox hBox2 = new HBox();
-        vBox.getChildren().addAll(hBox1, database, hBox2, limit, start);
+        HBox hBox3 = new HBox();
+        hBox3.getChildren().addAll(limit, start);
+        vBox.getChildren().addAll(hBox1, database, hBox2, newdatabase, limit, hBox3);
         hBox1.getChildren().addAll(form, oldHost, oldPort, oldUsername, oldPassword);
         hBox2.getChildren().addAll(to, newHost, newPort, newUsername, newPassword);
         primaryStage.setScene(new Scene(vBox));

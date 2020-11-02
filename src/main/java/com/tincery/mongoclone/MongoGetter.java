@@ -41,8 +41,7 @@ public class MongoGetter {
         if(cloneCount != -1){
             query.limit(cloneCount);
         }
-        getCollectionNames().parallelStream()
-                .forEach(collectionName -> {
+        getCollectionNames().parallelStream().forEach(collectionName -> {
                     List<Document> documentList = this.oldMongoTemplate.find(query, Document.class, collectionName);
                     this.clonedData.put(collectionName, documentList);
                 });
